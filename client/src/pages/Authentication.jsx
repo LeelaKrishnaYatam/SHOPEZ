@@ -13,12 +13,12 @@ const Authentication = () => {
     <div className="AuthenticatePage">
 
       {isLogin ?
-      
-      <Login  setIsLogin = {setIsLogin} />
-    
-      :
-      
-      <Register setIsLogin = {setIsLogin} />
+
+        <Login setIsLogin={setIsLogin} />
+
+        :
+
+        <Register setIsLogin={setIsLogin} />
       }
 
     </div>

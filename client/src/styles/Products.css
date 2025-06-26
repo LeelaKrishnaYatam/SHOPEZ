@@ -1,127 +1,157 @@
-
-.products-container{
+.products-container {
 
     height: fit-content;
-    display: flex;   
+    display: flex;
     width: 100%;
     margin-bottom: 10vh;
 }
 
 
-.products-filter{
+.products-filter {
     width: 25%;
-    border-right:1px solid #c6c4c4 ;
-    border-top:1px solid #c6c4c4 ;
+    border-right: 1px solid #c6c4c4;
+    border-top: 1px solid #c6c4c4;
     min-height: 88vh;
     padding-left: 2vw;
     padding-top: 3vh;
     /* background-color: aqua; */
 }
 
-.products-filter h4{
+.products-filter h4 {
     color: rgb(67, 101, 130);
 }
-.product-filters-body{
+
+.product-filters-body {
     padding-left: 2vw;
 }
 
-.product-filters-body h6{
+.product-filters-body h6 {
     color: rgb(83, 111, 137);
 }
 
-.sub-filter-body{
+.sub-filter-body {
     padding-left: 1.5vw;
 
 }
-.sub-filter-body label{
+
+.sub-filter-body label {
     color: rgb(101, 128, 151);
     cursor: pointer;
 }
-.sub-filter-body input{
+
+.sub-filter-body input {
     cursor: pointer;
 }
 
-.products-body{
+.products-body {
     width: 75%;
     height: 88vh;
-    padding: 0vh 2vw 0vh 2vw ;
+    padding: 0vh 2vw 0vh 2vw;
 }
 
-.products-body h3{
+.products-body h3 {
     color: rgb(76, 113, 141);
 }
 
-.products{
+.products {
     margin-top: 3vh;
     height: 80vh;
     width: 100%;
     overflow-y: scroll;
     display: grid;
-    grid-template-columns: 33% 33% 33%;
-    row-gap: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 32px 24px;
     padding-bottom: 5vh;
+    background: #f7fafd;
+    border-radius: 16px;
+    box-shadow: 0 2px 16px #e3e3e3;
 }
 
-.product-item{
+.product-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px #e3e3e3;
+    padding: 18px 16px 24px 16px;
+    margin: 0 0 10px 0;
+    transition: transform 0.18s, box-shadow 0.18s;
     display: flex;
-    justify-content: center;
-    height: fit-content;
-}
-
-.product{
-
-    width: 90%;
-    height: fit-content;
-    padding-top: 10px;
-    padding-bottom: 20px;
-    cursor: pointer;
-
-}
-.product:hover{
-    box-shadow: rgba(0, 0, 0, 0.2) 0px 12px 28px 0px, rgba(0, 0, 0, 0.1) 0px 2px 4px 0px, rgba(255, 255, 255, 0.05) 0px 0px 0px 1px inset;
-    border-radius: 0.3rem;
-}
-
-.product img{
-
-    width: 90%;
-    margin-left: 5%;
-    height: 40vh;
-    border-radius: 0.3rem;
-}
-
-.product .product-data{
-
-    margin-left: 5%;
-    width: 90%;
-}
-
-.product .product-data h6{
-
-    margin: 0;
-}
-
-.product .product-data p{
-    font-size: 0.8rem;
-    margin: 0;
-}
-
-.product .product-data h5{
-
-    margin: 0;
-    display: flex;
-    gap: 5px;
+    flex-direction: column;
     align-items: center;
+    position: relative;
+    min-height: 380px;
+}
+
+.product-card-hover:hover {
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: 0 8px 32px #d1e3f8;
+    z-index: 2;
+}
+
+.product-card img {
+    width: 180px;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin: 0 auto 10px auto;
+    box-shadow: 0 1px 8px #eee;
+    background: #f2f2f2;
+}
+
+.product-card h3 {
+    margin: 12px 0 6px 0;
+    font-weight: 700;
+    color: #2d3a4a;
+    font-size: 1.15rem;
+    text-align: center;
+}
+
+.product-card p {
+    font-size: 0.98rem;
+    color: #555;
+    min-height: 38px;
+    margin: 0 0 8px 0;
+    text-align: center;
+}
+
+.product-card .price-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 8px 0 0 0;
+}
+
+.product-card .price-row .final-price {
+    font-weight: 700;
     font-size: 1.2rem;
+    color: #1a7f37;
 }
 
-.product .product-data h5 s{
-
-    font-size: 0.8rem;
-    color: rgb(255, 65, 65);
+.product-card .price-row .original-price {
+    text-decoration: line-through;
+    color: #e53935;
+    font-size: 1rem;
 }
 
-.product .product-data h5 p{
-    font-size: 0.8rem;
-    margin: 0;
+.product-card .price-row .discount-badge {
+    color: #fff;
+    background: #e53935;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.9rem;
+    margin-left: 4px;
+}
+
+.product-card .wishlist-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 1.5rem;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.product-card .wishlist-icon.active {
+    color: #e53935;
 }

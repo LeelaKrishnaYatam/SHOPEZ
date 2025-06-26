@@ -3,17 +3,18 @@ import bodyParser from 'body-parser';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
-import {Admin, Cart, Orders, Product, User, Review, Wishlist } from './Schema.js'
+import { Admin, Cart, Orders, Product, User, Review, Wishlist } from './Schema.js'
 import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import path from 'path';
+import axios from 'axios';
 
 
 const app = express();
 
 app.use(express.json());
-app.use(bodyParser.json({limit: "30mb", extended: true}))
-app.use(bodyParser.urlencoded({limit: "30mb", extended: true}));
+app.use(bodyParser.json({ limit: "30mb", extended: true }))
+app.use(bodyParser.urlencoded({ limit: "30mb", extended: true }));
 app.use(cors());
 
 const PORT = 6001;
@@ -37,25 +38,25 @@ async function initializeAdminData() {
 }
 
 // Connect to MongoDB with enhanced error handling
-mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/shopEZ', {
+mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shopez.vco1ngc.mongodb.net/shopEZ', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
     socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
 }).then(async () => {
     console.log('Connected to MongoDB Atlas successfully');
-    
+
     // Initialize admin data after successful connection
     await initializeAdminData();
 
     // Registration endpoint with enhanced validation and error handling
     app.post('/register', async (req, res) => {
         const { username, email, usertype, password } = req.body;
-        
+
         try {
             // Input validation
             if (!username || !email || !password) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     message: 'Please provide all required fields',
                     required: ['username', 'email', 'password']
                 });
@@ -64,14 +65,14 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
             // Email format validation
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     message: 'Please provide a valid email address'
                 });
             }
 
             // Password validation (minimum 6 characters)
             if (password.length < 6) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     message: 'Password must be at least 6 characters long'
                 });
             }
@@ -79,7 +80,7 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
             // Check if user already exists
             const existingUser = await User.findOne({ email });
             if (existingUser) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     message: 'User with this email already exists'
                 });
             }
@@ -101,12 +102,12 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
 
             // Generate JWT token
             const token = jwt.sign(
-                { 
-                    id: userCreated._id, 
-                    email: userCreated.email, 
-                    usertype: userCreated.usertype 
-                }, 
-                JWT_SECRET, 
+                {
+                    id: userCreated._id,
+                    email: userCreated.email,
+                    usertype: userCreated.usertype
+                },
+                JWT_SECRET,
                 { expiresIn: '7d' }
             );
 
@@ -124,9 +125,9 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
 
         } catch (error) {
             console.error('Registration error:', error);
-            return res.status(500).json({ 
+            return res.status(500).json({
                 message: 'Error occurred during registration',
-                error: error.message 
+                error: error.message
             });
         }
     });
@@ -138,7 +139,7 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
         try {
             // Input validation
             if (!email || !password) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     message: 'Please provide both email and password'
                 });
             }
@@ -146,7 +147,7 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
             // Find user by email
             const user = await User.findOne({ email });
             if (!user) {
-                return res.status(401).json({ 
+                return res.status(401).json({
                     message: 'Invalid email or password'
                 });
             }
@@ -154,19 +155,19 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
             // Compare password
             const isMatch = await bcrypt.compare(password, user.password);
             if (!isMatch) {
-                return res.status(401).json({ 
+                return res.status(401).json({
                     message: 'Invalid email or password'
                 });
             }
 
             // Generate JWT
             const token = jwt.sign(
-                { 
-                    id: user._id, 
-                    email: user.email, 
-                    usertype: user.usertype 
-                }, 
-                JWT_SECRET, 
+                {
+                    id: user._id,
+                    email: user.email,
+                    usertype: user.usertype
+                },
+                JWT_SECRET,
                 { expiresIn: '7d' }
             );
 
@@ -184,9 +185,9 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
 
         } catch (error) {
             console.error('Login error:', error);
-            return res.status(500).json({ 
+            return res.status(500).json({
                 message: 'Error occurred during login',
-                error: error.message 
+                error: error.message
             });
         }
     });
@@ -213,20 +214,20 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
     }
 
     // fetch banner
-    app.get('/fetch-banner', async(req, res)=>{
-        try{
+    app.get('/fetch-banner', async (req, res) => {
+        try {
             const admin = await Admin.findOne();
             if (!admin) {
-                const newAdmin = new Admin({banner: "", categories: []});
+                const newAdmin = new Admin({ banner: "", categories: [] });
                 await newAdmin.save();
                 return res.json(newAdmin.banner || "");
             }
             res.json(admin.banner || "");
-        }catch(err){
+        } catch (err) {
             console.error('Error in fetch-banner:', err);
-            res.status(500).json({ 
+            res.status(500).json({
                 message: 'Error occurred while fetching banner',
-                error: err.message 
+                error: err.message
             });
         }
     })
@@ -234,52 +235,52 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
 
     // fetch users
 
-    app.get('/fetch-users', authenticateToken, isAdmin, async(req, res)=>{
-        try{
+    app.get('/fetch-users', authenticateToken, isAdmin, async (req, res) => {
+        try {
             const users = await User.find();
             res.json(users);
 
-        }catch(err){
+        } catch (err) {
             console.error(err);
             res.status(500).json({ message: 'Error occured' });
         }
     })
 
-     // Fetch individual product
-     app.get('/fetch-product-details/:id', async(req, res)=>{
+    // Fetch individual product
+    app.get('/fetch-product-details/:id', async (req, res) => {
         const id = req.params.id;
-        try{
+        try {
             const product = await Product.findById(id);
             res.json(product);
-        }catch(err){
+        } catch (err) {
             console.error(err);
-            res.status(500).json({message: "Error occured"});
+            res.status(500).json({ message: "Error occured" });
         }
     })
 
     // fetch products
-    app.get('/fetch-products', async(req, res) => {
+    app.get('/fetch-products', async (req, res) => {
         try {
             const products = await Product.find().sort({ createdAt: -1 });
             // Return empty array if no products found instead of throwing an error
             res.json(products || []);
-        } catch(err) {
+        } catch (err) {
             console.error('Error in fetch-products:', err);
-            res.status(500).json({ 
+            res.status(500).json({
                 message: 'Error occurred while fetching products',
-                error: err.message 
+                error: err.message
             });
         }
     });
 
     // fetch orders
 
-    app.get('/fetch-orders', authenticateToken, isAdmin, async(req, res)=>{
-        try{
+    app.get('/fetch-orders', authenticateToken, isAdmin, async (req, res) => {
+        try {
             const orders = await Orders.find();
             res.json(orders);
 
-        }catch(err){
+        } catch (err) {
             console.error(err);
             res.status(500).json({ message: 'Error occured' });
         }
@@ -288,7 +289,7 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
 
     // Fetch categories
 
-    app.get('/fetch-categories', async(req, res) => {
+    app.get('/fetch-categories', async (req, res) => {
         try {
             const admin = await Admin.findOne();
             if (!admin) {
@@ -296,7 +297,7 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
                 return res.json(["Men", "Women", "Unisex", "Accessories"]);
             }
             res.json(admin.categories);
-        } catch(err) {
+        } catch (err) {
             console.error('Error in fetch-categories:', err);
             res.status(500).json({
                 message: "Error occurred while fetching categories",
@@ -308,32 +309,32 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
 
     // Add new product
 
-    app.post('/add-new-product', authenticateToken, isAdmin, async(req, res)=>{
-        const {productName, productDescription, productMainImg, productCarousel, productSizes, productGender, productCategory, productNewCategory, productPrice, productDiscount} = req.body;
-        try{
-            if(productCategory === 'new category'){
+    app.post('/add-new-product', authenticateToken, isAdmin, async (req, res) => {
+        const { productName, productDescription, productMainImg, productCarousel, productSizes, productGender, productCategory, productNewCategory, productPrice, productDiscount } = req.body;
+        try {
+            if (productCategory === 'new category') {
                 const admin = await Admin.findOne();
                 admin.categories.push(productNewCategory);
                 await admin.save();
-                const newProduct = new Product({title: productName, description: productDescription, mainImg: productMainImg, carousel: productCarousel, category: productNewCategory,sizes: productSizes, gender: productGender, price: productPrice, discount: productDiscount});
+                const newProduct = new Product({ title: productName, description: productDescription, mainImg: productMainImg, carousel: productCarousel, category: productNewCategory, sizes: productSizes, gender: productGender, price: productPrice, discount: productDiscount });
                 await newProduct.save();
-            } else{
-                const newProduct = new Product({title: productName, description: productDescription, mainImg: productMainImg, carousel: productCarousel, category: productCategory,sizes: productSizes, gender: productGender, price: productPrice, discount: productDiscount});
+            } else {
+                const newProduct = new Product({ title: productName, description: productDescription, mainImg: productMainImg, carousel: productCarousel, category: productCategory, sizes: productSizes, gender: productGender, price: productPrice, discount: productDiscount });
                 await newProduct.save();
             }
-            res.json({message: "product added!!"});
-        }catch(err){
+            res.json({ message: "product added!!" });
+        } catch (err) {
             console.error(err);
-            res.status(500).json({message: "Error occured"});
+            res.status(500).json({ message: "Error occured" });
         }
     })
 
     // update product
 
-    app.put('/update-product/:id', authenticateToken, isAdmin, async(req, res)=>{
-        const {productName, productDescription, productMainImg, productCarousel, productSizes, productGender, productCategory, productNewCategory, productPrice, productDiscount} = req.body;
-        try{
-            if(productCategory === 'new category'){
+    app.put('/update-product/:id', authenticateToken, isAdmin, async (req, res) => {
+        const { productName, productDescription, productMainImg, productCarousel, productSizes, productGender, productCategory, productNewCategory, productPrice, productDiscount } = req.body;
+        try {
+            if (productCategory === 'new category') {
                 const admin = await Admin.findOne();
                 admin.categories.push(productNewCategory);
                 await admin.save();
@@ -351,8 +352,8 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
                 product.discount = productDiscount;
 
                 await product.save();
-               
-            } else{
+
+            } else {
                 const product = await Product.findById(req.params.id);
 
                 product.title = productName;
@@ -367,95 +368,95 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
 
                 await product.save();
             }
-            res.json({message: "product updated!!"});
-        }catch(err){
+            res.json({ message: "product updated!!" });
+        } catch (err) {
             console.error(err);
-            res.status(500).json({message: "Error occured"});
+            res.status(500).json({ message: "Error occured" });
         }
     })
 
 
     // Update banner
 
-    app.post('/update-banner', authenticateToken, isAdmin, async(req, res)=>{
-        const {banner} = req.body;
-        try{
+    app.post('/update-banner', authenticateToken, isAdmin, async (req, res) => {
+        const { banner } = req.body;
+        try {
             const data = await Admin.find();
-            if(data.length===0){
-                const newData = new Admin({banner: banner, categories: []})
+            if (data.length === 0) {
+                const newData = new Admin({ banner: banner, categories: [] })
                 await newData.save();
-                res.json({message: "banner updated"});
-            }else{
+                res.json({ message: "banner updated" });
+            } else {
                 const admin = await Admin.findOne();
                 admin.banner = banner;
                 await admin.save();
-                res.json({message: "banner updated"});
+                res.json({ message: "banner updated" });
             }
-            
-        }catch(err){
+
+        } catch (err) {
             console.error(err);
-            res.status(500).json({message: "Error occured"});
+            res.status(500).json({ message: "Error occured" });
         }
     })
 
 
     // buy product
 
-    app.post('/buy-product', async(req, res)=>{
-        const {userId, name, email, mobile, address, pincode, title, description, mainImg, size, quantity, price, discount, paymentMethod, orderDate} = req.body;
-        try{
+    app.post('/buy-product', async (req, res) => {
+        const { userId, name, email, mobile, address, pincode, title, description, mainImg, size, quantity, price, discount, paymentMethod, orderDate } = req.body;
+        try {
 
-            const newOrder = new Orders({userId, name, email, mobile, address, pincode, title, description, mainImg, size, quantity, price, discount, paymentMethod, orderDate})
+            const newOrder = new Orders({ userId, name, email, mobile, address, pincode, title, description, mainImg, size, quantity, price, discount, paymentMethod, orderDate })
             await newOrder.save();
-            res.json({message: 'order placed'});
+            res.json({ message: 'order placed' });
 
-        }catch(err){
+        } catch (err) {
             console.error(err);
-            res.status(500).json({message: "Error occured"});
+            res.status(500).json({ message: "Error occured" });
         }
     })
 
 
-   
+
     // cancel order
 
-    app.put('/cancel-order', async(req, res)=>{
-        const {id} = req.body;
-        try{
+    app.put('/cancel-order', async (req, res) => {
+        const { id } = req.body;
+        try {
 
             const order = await Orders.findById(id);
             order.orderStatus = 'cancelled';
             await order.save();
-            res.json({message: 'order cancelled'});
+            res.json({ message: 'order cancelled' });
 
-        }catch(err){
+        } catch (err) {
             console.error(err);
-            res.status(500).json({message: "Error occured"});
+            res.status(500).json({ message: "Error occured" });
         }
     })
 
 
     // update order status
 
-    app.put('/update-order-status', async(req, res)=>{
-        const {id, updateStatus} = req.body;
-        try{
+    app.put('/update-order-status', async (req, res) => {
+        const { id, updateStatus } = req.body;
+        try {
 
             const order = await Orders.findById(id);
             order.orderStatus = updateStatus;
             await order.save();
-            res.json({message: 'order status updated'});
+            res.json({ message: 'order status updated' });
 
-        }catch(err){
+        } catch (err) {
             console.error(err);
-            res.status(500).json({message: "Error occured"});
+            res.status(500).json({ message: "Error occured" });
         }
     })
 
 
     // fetch cart items
 
-    app.get('/fetch-cart', authenticateToken, async(req, res) => {
+    app.get('/fetch-cart', authenticateToken, async (req, res) => {
         try {
             const userId = req.user.id; // Get userId from authenticated token
             const cartItems = await Cart.find({ userId })
@@ -470,7 +471,7 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
 
     // add cart item
 
-    app.post('/add-to-cart', authenticateToken, async(req, res) => {
+    app.post('/add-to-cart', authenticateToken, async (req, res) => {
         try {
             const userId = req.user.id; // Get userId from authenticated token
             const { productId, title, description, mainImg, size, quantity, price, discount } = req.body;
@@ -526,7 +527,7 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
 
     // increase cart quantity
 
-    app.put('/increase-cart-quantity', authenticateToken, async(req, res) => {
+    app.put('/increase-cart-quantity', authenticateToken, async (req, res) => {
         try {
             const userId = req.user.id;
             const { productId, size } = req.body;
@@ -560,7 +561,7 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
 
     // decrease cart quantity
 
-    app.put('/decrease-cart-quantity', authenticateToken, async(req, res) => {
+    app.put('/decrease-cart-quantity', authenticateToken, async (req, res) => {
         try {
             const userId = req.user.id;
             const { productId, size } = req.body;
@@ -600,21 +601,21 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
 
     // remove from cart
 
-    app.put('/remove-item', async(req, res)=>{
-        const {id} = req.body;
-        try{
-            const item = await Cart.deleteOne({_id: id});
-            res.json({message: 'item removed'});
-        }catch(err){
+    app.put('/remove-item', async (req, res) => {
+        const { id } = req.body;
+        try {
+            const item = await Cart.deleteOne({ _id: id });
+            res.json({ message: 'item removed' });
+        } catch (err) {
             console.error(err);
-            res.status(500).json({message: "Error occured"});
+            res.status(500).json({ message: "Error occured" });
         }
     });
 
 
     // Order from cart
 
-    app.post('/place-cart-order', authenticateToken, async(req, res) => {
+    app.post('/place-cart-order', authenticateToken, async (req, res) => {
         try {
             const userId = req.user.id;
             const { name, email, mobile, address, pincode, paymentMethod } = req.body;
@@ -754,7 +755,7 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
 
             product.reviews.push(savedReview._id);
             product.reviewCount += 1;
-            
+
             // Calculate new average rating
             const allProductReviews = await Review.find({ productId });
             const totalRating = allProductReviews.reduce((sum, review) => sum + review.rating, 0);
@@ -847,7 +848,7 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
 
             // Recalculate average rating
             if (product.reviewCount > 0) {
-                const allProductReviews = await Review.find({ 
+                const allProductReviews = await Review.find({
                     productId: review.productId,
                     _id: { $ne: reviewId }
                 });
@@ -952,14 +953,14 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
         try {
             const { productId } = req.body;
             let wishlist = await Wishlist.findOne({ user: req.user.id });
-            
+
             if (!wishlist) {
                 wishlist = await Wishlist.create({ user: req.user.id, products: [productId] });
             } else if (!wishlist.products.includes(productId)) {
                 wishlist.products.push(productId);
                 await wishlist.save();
             }
-            
+
             res.json({ message: 'Product added to wishlist' });
         } catch (error) {
             console.error('Error adding to wishlist:', error);
@@ -973,12 +974,12 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
             if (!wishlist) {
                 return res.status(404).json({ message: 'Wishlist not found' });
             }
-            
+
             wishlist.products = wishlist.products.filter(
                 product => product.toString() !== req.params.productId
             );
             await wishlist.save();
-            
+
             res.json({ message: 'Product removed from wishlist' });
         } catch (error) {
             console.error('Error removing from wishlist:', error);
@@ -999,7 +1000,7 @@ mongoose.connect('mongodb+srv://leelayatam:18-01-2005@shop.lynvedc.mongodb.net/s
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).json({ 
+    res.status(500).json({
         message: 'Something broke!',
         error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
     });

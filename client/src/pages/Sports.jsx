@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import sportsImg from '../images/categories/sports.jpg';
 import Products from '../components/Products';
 import Footer from '../components/Footer';
 import '../styles/CategoryLanding.css';
@@ -12,9 +11,11 @@ const Sports = () => {
     setLoading(false);
   }, []);
 
+  const cricketImgUrl = 'https://images.unsplash.com/photo-1508672019048-805c876b67e2?auto=format&fit=crop&w=1200&q=80';
+
   return (
     <div className="category-landing sports-landing">
-      <div className="category-banner" style={{backgroundImage: `url(${sportsImg})`}}>
+      <div className="category-banner" style={{ backgroundImage: `url(${cricketImgUrl})` }}>
         <div className="category-banner-content">
           <h1>Sports</h1>
           <p>Gear up for action! Sportswear, equipment, and accessories for all athletes.</p>

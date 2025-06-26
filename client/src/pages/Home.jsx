@@ -61,14 +61,14 @@ const Home = () => {
     Sports: sportsImg,
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchBanner();
     fetchProducts();
   }, [])
 
-  const fetchBanner = async() =>{
+  const fetchBanner = async () => {
     await axios.get('http://localhost:6001/fetch-banner').then(
-      (response)=>{
+      (response) => {
         setBannerImg(response.data);
       }
     )
@@ -165,9 +165,9 @@ const Home = () => {
         <h2>Shop by Category</h2>
         <div className="categories-grid">
           {categories.map((category, index) => (
-            <Link 
-              to={`/category/${category.name}`} 
-              key={index} 
+            <Link
+              to={`/category/${category.name}`}
+              key={index}
               className="category-card"
             >
               <img src={categoryImages[category.name] || placeholderImage} alt={category.name} />
@@ -187,9 +187,9 @@ const Home = () => {
         </div>
         <div className="products-grid">
           {flashSaleProducts.map((product) => (
-            <Link 
-              to={`/product/${product._id}`} 
-              key={product._id} 
+            <Link
+              to={`/product/${product._id}`}
+              key={product._id}
               className="product-card"
             >
               <div className="discount-badge">-{product.discount}%</div>
@@ -211,9 +211,9 @@ const Home = () => {
         <h2>Featured Products</h2>
         <div className="products-grid">
           {featuredProducts.map((product) => (
-            <Link 
-              to={`/product/${product._id}`} 
-              key={product._id} 
+            <Link
+              to={`/product/${product._id}`}
+              key={product._id}
               className="product-card"
             >
               <img src={product.mainImg || placeholderImage} alt={product.title} />
@@ -229,15 +229,15 @@ const Home = () => {
       </section>
 
       {/* Newsletter Section */}
-      <section className="newsletter-section" style={{backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url(${newsletterBg})`}}>
+      <section className="newsletter-section" style={{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url(${newsletterBg})` }}>
         <div className="newsletter-content">
           <h2>Subscribe to Our Newsletter</h2>
           <p>Get the latest updates on new products and upcoming sales</p>
           <form className="newsletter-form">
-            <input 
-              type="email" 
-              placeholder="Enter your email" 
-              required 
+            <input
+              type="email"
+              placeholder="Enter your email"
+              required
             />
             <button type="submit">Subscribe</button>
           </form>
@@ -245,19 +245,19 @@ const Home = () => {
       </section>
 
       {/* Brand Logos Section */}
-      <div className="brand-logos" style={{display: 'flex', justifyContent: 'center', gap: '3rem', margin: '2rem 0'}}>
+      <div className="brand-logos" style={{ display: 'flex', justifyContent: 'center', gap: '3rem', margin: '2rem 0' }}>
         {brandLogos.map((logo, idx) => (
-          <img key={idx} src={logo} alt="Brand" style={{height: '40px', filter: 'grayscale(1)', opacity: 0.7}} />
+          <img key={idx} src={logo} alt="Brand" style={{ height: '40px', filter: 'grayscale(1)', opacity: 0.7 }} />
         ))}
       </div>
 
       {/* Featured Products Carousel */}
-      <div className="featured-carousel" style={{maxWidth: '900px', margin: '0 auto 2rem auto'}}>
-        <h2 style={{textAlign: 'center'}}>Featured Products</h2>
+      <div className="featured-carousel" style={{ maxWidth: '900px', margin: '0 auto 2rem auto' }}>
+        <h2 style={{ textAlign: 'center' }}>Featured Products</h2>
         <Carousel showThumbs={false} autoPlay infiniteLoop showStatus={false}>
           {products.slice(0, 6).map(product => (
-            <div key={product._id} style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-              <img src={product.mainImg} alt={product.title} style={{height: '300px', objectFit: 'cover', borderRadius: '10px'}} />
+            <div key={product._id} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <img src={product.mainImg} alt={product.title} style={{ height: '300px', objectFit: 'cover', borderRadius: '10px' }} />
               <h3>{product.title}</h3>
               <p>Price: ${product.price}</p>
               <Link to={`/product/${product._id}`}>View Details</Link>
@@ -267,24 +267,24 @@ const Home = () => {
       </div>
 
       {/* Image Gallery/Lookbook */}
-      <div className="gallery-section" style={{padding: '2rem 0', background: '#f7f7f7'}}>
-        <h2 style={{textAlign: 'center'}}>Lookbook</h2>
-        <div style={{display: 'flex', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap'}}>
+      <div className="gallery-section" style={{ padding: '2rem 0', background: '#f7f7f7' }}>
+        <h2 style={{ textAlign: 'center' }}>Lookbook</h2>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
           {galleryImages.map((img, idx) => (
-            <img key={idx} src={img} alt={`Gallery ${idx}`} style={{width: '220px', height: '220px', objectFit: 'cover', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)'}} />
+            <img key={idx} src={img} alt={`Gallery ${idx}`} style={{ width: '220px', height: '220px', objectFit: 'cover', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }} />
           ))}
         </div>
       </div>
 
       {/* Testimonials Section */}
-      <div className="testimonials-section" style={{padding: '2rem 0'}}>
-        <h2 style={{textAlign: 'center'}}>What Our Customers Say</h2>
-        <div style={{display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap'}}>
+      <div className="testimonials-section" style={{ padding: '2rem 0' }}>
+        <h2 style={{ textAlign: 'center' }}>What Our Customers Say</h2>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap' }}>
           {testimonials.map((t, idx) => (
-            <div key={idx} style={{background: '#fff', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', padding: '1.5rem', maxWidth: '320px', textAlign: 'center'}}>
-              <img src={t.img} alt={t.name} style={{width: '60px', height: '60px', borderRadius: '50%', marginBottom: '1rem'}} />
-              <p style={{fontStyle: 'italic'}}>{t.text}</p>
-              <h5 style={{marginTop: '1rem'}}>{t.name}</h5>
+            <div key={idx} style={{ background: '#fff', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', padding: '1.5rem', maxWidth: '320px', textAlign: 'center' }}>
+              <img src={t.img} alt={t.name} style={{ width: '60px', height: '60px', borderRadius: '50%', marginBottom: '1rem' }} />
+              <p style={{ fontStyle: 'italic' }}>{t.text}</p>
+              <h5 style={{ marginTop: '1rem' }}>{t.name}</h5>
             </div>
           ))}
         </div>

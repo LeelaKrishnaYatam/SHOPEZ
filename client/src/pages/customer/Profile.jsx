@@ -1,13 +1,11 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState, useCallback } from 'react'
 import '../../styles/Profile.css'
 import { GeneralContext } from '../../context/GeneralContext'
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
 
-  const {logout} = useContext(GeneralContext);
-  const navigate = useNavigate();
+  const { logout } = useContext(GeneralContext);
 
   const userId = localStorage.getItem('userId');
   const username = localStorage.getItem('username');
@@ -19,25 +17,25 @@ const Profile = () => {
   const [mobile, setMobile] = useState('');
   const [pincode, setPincode] = useState('');
 
-  useEffect(()=>{
-    fetchOrders();
-  },[])
-
-  const fetchOrders = async () =>{
+  const fetchOrders = useCallback(async () => {
     await axios.get(`http://localhost:6001/fetch-orders`).then(
-      (response)=>{
-        setOrders(response.data.filter(order=> order.userId === userId).reverse());
+      (response) => {
+        setOrders(response.data.filter(order => order.userId === userId).reverse());
       }
     )
-  }
+  }, [userId]);
 
-  const  cancelOrder = async(id) =>{
-    await axios.put('http://localhost:6001/cancel-order', {id}).then(
-      (response)=>{
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  const cancelOrder = async (id) => {
+    await axios.put('http://localhost:6001/cancel-order', { id }).then(
+      (response) => {
         alert("Order cancelled!!");
         fetchOrders();
       }
-    ).catch((err)=>{
+    ).catch((err) => {
       alert("Order cancellation failed!!");
     })
   }
@@ -62,24 +60,24 @@ const Profile = () => {
     }
   };
 
-  return ( 
+  return (
     <div className="profilePage">
-      
+
       <div className="profileCard">
 
-          <span>
-            <h5>Username: </h5>
-            <p>{username}</p>
-          </span>
-          <span>
-            <h5>Email: </h5>
-            <p>{email}</p>
-          </span>
-          <span>
-            <h5>Orders: </h5>
-            <p>{orders.length}</p>
-          </span>
-          <button className='btn btn-danger' onClick={logout}>Logout</button>
+        <span>
+          <h5>Username: </h5>
+          <p>{username}</p>
+        </span>
+        <span>
+          <h5>Email: </h5>
+          <p>{email}</p>
+        </span>
+        <span>
+          <h5>Orders: </h5>
+          <p>{orders.length}</p>
+        </span>
+        <button className='btn btn-danger' onClick={logout}>Logout</button>
 
       </div>
 
@@ -87,8 +85,8 @@ const Profile = () => {
         <h3>Orders</h3>
         <div className="profileOrders">
 
-          {orders.map((order)=>{
-            return(
+          {orders.map((order) => {
+            return (
               <div className="profileOrder" key={order._id}>
                 <img src={order.mainImg} alt="" />
                 <div className="profileOrder-data">
@@ -97,28 +95,28 @@ const Profile = () => {
                   <div>
                     <span><p><b>Size: </b> {order.size}</p></span>
                     <span><p><b>Quantity: </b> {order.quantity}</p></span>
-                    <span><p><b>Price: </b> &#8377; {parseInt(order.price - (order.price * order.discount)/100) * order.quantity}</p></span>
+                    <span><p><b>Price: </b> &#8377; {parseInt(order.price - (order.price * order.discount) / 100) * order.quantity}</p></span>
                     <span><p><b>Payment method: </b> {order.paymentMethod}</p></span>
                   </div>
                   <div>
                     <span><p><b>Address: </b> {order.address}</p></span>
                     <span><p><b>Pincode: </b> {order.pincode}</p></span>
-                    <span><p><b>Ordered on: </b> {order.orderDate.slice(0,10)}</p></span>
-                   </div>
+                    <span><p><b>Ordered on: </b> {order.orderDate.slice(0, 10)}</p></span>
+                  </div>
                   <div>
                     <span><p><b>Order status: </b> {order.orderStatus}</p></span>
                   </div>
                   {order.orderStatus === 'order placed' || order.orderStatus === 'In-transit' ?
-                  
-                    <button className='btn btn-danger' onClick={()=> cancelOrder(order._id)}>Cancel</button>
-                  :
-                  ""}
+
+                    <button className='btn btn-danger' onClick={() => cancelOrder(order._id)}>Cancel</button>
+                    :
+                    ""}
                 </div>
               </div>
             )
           })}
 
-            
+
         </div>
       </div>
 
