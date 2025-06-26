@@ -4,6 +4,11 @@ import {HiOutlineArrowSmLeft} from 'react-icons/hi'
 import {useNavigate, useParams} from 'react-router-dom';
 import axios from 'axios';
 import { GeneralContext } from '../../context/GeneralContext';
+import ReviewForm from '../../components/ReviewForm';
+import ReviewList from '../../components/ReviewList';
+import { FaStar, FaShoppingCart, FaHeart } from 'react-icons/fa';
+import { Carousel } from 'react-responsive-carousel';
+import Rating from '../../components/Rating';
 
 const IndividualProduct = () => {
 
@@ -12,7 +17,12 @@ const navigate = useNavigate()
 
 const userId = localStorage.getItem('userId');
 
-const {fetchCartCount} = useContext(GeneralContext);
+const {fetchCartCount, isAuthenticated} = useContext(GeneralContext);
+
+const [product, setProduct] = useState(null);
+const [selectedSize, setSelectedSize] = useState('');
+const [quantity, setQuantity] = useState(1);
+const [loading, setLoading] = useState(true);
 
 const [productName, setProductName] = useState('');
 const [productDescription, setProductDescription] = useState('');
@@ -23,29 +33,48 @@ const [productCarouselImg3, setProductCarouselImg3] = useState('');
 const [productSizes, setProductSizes] = useState([]);
 const [productPrice, setProductPrice] = useState(0);
 const [productDiscount, setProductDiscount] = useState(0);
-
+const [averageRating, setAverageRating] = useState(0);
+const [reviews, setReviews] = useState([]);
 
 useEffect(()=>{
     fetchProduct();
+    fetchReviews();
 },[])
 
 const fetchProduct = async () =>{
-    await axios.get(`http://localhost:6001/fetch-product-details/${id}`).then(
-        (response)=>{
-            setProductName(response.data.title);
-            setProductDescription(response.data.description);
-            setProductMainImg(response.data.mainImg);
-            setProductCarouselImg1(response.data.carousel[0]);
-            setProductCarouselImg2(response.data.carousel[1]);
-            setProductCarouselImg3(response.data.carousel[2]);
-            setProductSizes(response.data.sizes);
-            setProductPrice(response.data.price);
-            setProductDiscount(response.data.discount);
-        }
-    )
+    try {
+        const response = await axios.get(`http://localhost:6001/products/${id}`);
+        setProduct(response.data);
+        setLoading(false);
+        setProductName(response.data.title);
+        setProductDescription(response.data.description);
+        setProductMainImg(response.data.mainImg);
+        setProductCarouselImg1(response.data.carousel[0]);
+        setProductCarouselImg2(response.data.carousel[1]);
+        setProductCarouselImg3(response.data.carousel[2]);
+        setProductSizes(response.data.sizes);
+        setProductPrice(response.data.price);
+        setProductDiscount(response.data.discount);
+        setAverageRating(response.data.averageRating);
+    } catch (error) {
+        console.error('Error fetching product:', error);
+        setLoading(false);
+    }
 }
 
-const [productQuantity, setProductQuantity] = useState(1);
+const fetchReviews = async () => {
+    try {
+        const response = await axios.get(`http://localhost:6001/products/${id}/reviews`);
+        setReviews(response.data);
+    } catch (error) {
+        console.error('Error fetching reviews:', error);
+    }
+};
+
+const handleReviewSubmitted = () => {
+    fetchReviews();
+    fetchProduct(); // To update average rating
+};
 
 const [size, setSize] = useState('');
 const [name, setName] = useState('');
@@ -55,11 +84,8 @@ const [address, setAddress] = useState('');
 const [pincode, setPincode] = useState('');
 const [paymentMethod, setPaymentMethod] = useState('');
 
-
-
-
 const buyNow = async() =>{
-    await axios.post('http://localhost:6001/buy-product',{userId, name, email, mobile, address, pincode, title: productName, description: productDescription, mainImg: productMainImg, size, quantity: productQuantity, price: productPrice, discount: productDiscount, paymentMethod: paymentMethod, orderDate: new Date()}).then(
+    await axios.post('http://localhost:6001/buy-product',{userId, name, email, mobile, address, pincode, title: productName, description: productDescription, mainImg: productMainImg, size, quantity: quantity, price: productPrice, discount: productDiscount, paymentMethod: paymentMethod, orderDate: new Date()}).then(
         (response)=>{
             alert('Order placed!!');
             navigate('/profile');
@@ -69,16 +95,58 @@ const buyNow = async() =>{
     })
 }
 
+const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+        alert('Please login to add items to cart');
+        return;
+    }
 
-const handleAddToCart = async() =>{
-    await axios.post('http://localhost:6001/add-to-cart', {userId, title: productName, description: productDescription, mainImg: productMainImg, size, quantity: productQuantity, price: productPrice, discount: productDiscount}).then(
-        (response)=>{
-            alert("product added to cart!!");
-            navigate('/cart');
-        }
-    ).catch((err)=>{
-        alert("Operation failed!!");
-    })
+    if (!selectedSize) {
+        alert('Please select a size');
+        return;
+    }
+
+    try {
+        await axios.post('http://localhost:6001/add-to-cart', {
+            productId: product._id,
+            title: product.title,
+            description: product.description,
+            mainImg: product.mainImg,
+            size: selectedSize,
+            quantity,
+            price: product.price,
+            discount: product.discount
+        });
+        alert('Added to cart successfully!');
+    } catch (error) {
+        console.error('Error adding to cart:', error);
+        alert('Failed to add to cart');
+    }
+};
+
+const handleAddToWishlist = async () => {
+    if (!isAuthenticated) {
+        alert('Please login to add items to wishlist');
+        return;
+    }
+
+    try {
+        await axios.post('http://localhost:6001/add-to-wishlist', {
+            productId: product._id
+        });
+        alert('Added to wishlist successfully!');
+    } catch (error) {
+        console.error('Error adding to wishlist:', error);
+        alert('Failed to add to wishlist');
+    }
+};
+
+if (loading) {
+    return <div className="loading">Loading...</div>;
+}
+
+if (!product) {
+    return <div className="error">Product not found</div>;
 }
 
   return (
@@ -86,77 +154,94 @@ const handleAddToCart = async() =>{
         <span onClick={()=> navigate('')}> <HiOutlineArrowSmLeft /> <p>back</p></span>
 
         <div className="IndividualProduct-body">
-
-            <div id="carouselExampleIndicators" className="carousel slide" data-bs-ride="carousel">
-                <div className="carousel-indicators">
-                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" className="active" aria-current="true" aria-label="Slide 1"></button>
-                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
-                    <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
-                </div>
-                <div className="carousel-inner">
-                    <div className="carousel-item active">
-                    <img src={productCarouselImg1} className="d-block w-100" alt="..."  />
-                    </div>
-                    <div className="carousel-item">
-                    <img src={productCarouselImg2} className="d-block w-100" alt="..." />
-                    </div>
-                    <div className="carousel-item">
-                    <img src={productCarouselImg3} className="d-block w-100" alt="..." />
-                    </div>
-                </div>
-                <button className="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
-                    <span className="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span className="visually-hidden">Previous</span>
-                </button>
-                <button className="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
-                    <span className="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span className="visually-hidden">Next</span>
-                </button>
-            </div>
-
-
-            <div className="IndividualProduct-data">
-                <h3>{productName}</h3>
-                <p>{productDescription}</p>
-                
-                <span>
-                    <label htmlFor="productSize">Choose size</label>
-                    <select name="productSize" id="productSize" value={size} onChange={(e)=>setSize(e.target.value)}>
-                        <option value=""></option>
-                        {productSizes.map((size)=>{
-                            return(
-                                <option key={size} value={size}>{size}</option>
-                            )
-                        })}
-                    </select>
-                </span>
-                <span>
-                    <label htmlFor="productQuantity">Quantity</label>
-                    <select name="productQuantity" id="productQuantity" value={productQuantity} onChange={(e)=>setProductQuantity(e.target.value)}>
-
-                        <option value={1}>1</option>
-                        <option value={2}>2</option>
-                        <option value={3}>3</option>
-                        <option value={4}>4</option>
-                        <option value={5}>5</option>
-                        <option value={6}>6</option>
-
-                    </select>
-                </span>
-
-                <span><h5><b>Price: </b> 	&#8377; {parseInt(productPrice - (productPrice * productDiscount)/100)}  </h5> <s>{productPrice}</s> <p>({productDiscount}% off)</p></span>
-                <h6><b>Rating:</b> 3.4/5 </h6>
-                <p className="delivery-date">Free delivery in 5 days</p>
-
-                <div className="productBuyingButtons">
-                    <button data-bs-toggle="modal" data-bs-target="#staticBackdrop">Buy now</button>
-                    <button onClick={handleAddToCart}>Add to cart</button>
+            <div className="product-grid">
+                <div className="product-images">
+                    <Carousel showThumbs={true} infiniteLoop={true}>
+                        <div>
+                            <img src={productMainImg} alt={productName} />
+                        </div>
+                        {product.carousel?.map((img, index) => (
+                            <div key={index}>
+                                <img src={img} alt={`${productName} ${index + 1}`} />
+                            </div>
+                        ))}
+                    </Carousel>
                 </div>
 
+                <div className="product-info">
+                    <h1>{productName}</h1>
+                    
+                    <div className="product-meta">
+                        <Rating value={averageRating} text={`${reviews.length} reviews`} />
+                        <span className="category">{product.category}</span>
+                    </div>
+
+                    <div className="product-price">
+                        {product.discount > 0 ? (
+                            <>
+                                <span className="original-price">${product.price}</span>
+                                <span className="discounted-price">
+                                    ${(product.price * (1 - product.discount / 100)).toFixed(2)}
+                                </span>
+                                <span className="discount-badge">-{product.discount}%</span>
+                            </>
+                        ) : (
+                            <span className="price">${product.price}</span>
+                        )}
+                    </div>
+
+                    <p className="description">{productDescription}</p>
+
+                    <div className="size-selection">
+                        <h3>Select Size</h3>
+                        <div className="size-options">
+                            {productSizes.map((sizeObj) => (
+                                <button
+                                    key={sizeObj.size}
+                                    className={`size-btn ${selectedSize === sizeObj.size ? 'selected' : ''} ${sizeObj.stock === 0 ? 'out-of-stock' : ''}`}
+                                    onClick={() => setSelectedSize(sizeObj.size)}
+                                    disabled={sizeObj.stock === 0}
+                                >
+                                    {sizeObj.size}
+                                    {sizeObj.stock === 0 && <span className="out-of-stock-label">Out of Stock</span>}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="quantity-selector">
+                        <h3>Quantity</h3>
+                        <div className="quantity-controls">
+                            <button onClick={() => setQuantity(q => Math.max(1, q - 1))}>-</button>
+                            <span>{quantity}</span>
+                            <button onClick={() => setQuantity(q => q + 1)}>+</button>
+                        </div>
+                    </div>
+
+                    <div className="product-actions">
+                        <button className="add-to-cart" onClick={handleAddToCart}>
+                            <FaShoppingCart /> Add to Cart
+                        </button>
+                        <button className="add-to-wishlist" onClick={handleAddToWishlist}>
+                            <FaHeart /> Add to Wishlist
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        
+        <div className="product-reviews-section">
+            <ReviewForm 
+                productId={id} 
+                onReviewSubmitted={handleReviewSubmitted} 
+            />
+            <ReviewList 
+                reviews={reviews} 
+                currentUserId={userId}
+                onDeleteReview={handleReviewSubmitted}
+            />
+        </div>
+
         <div className="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabIndex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
             <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div className="modal-content">

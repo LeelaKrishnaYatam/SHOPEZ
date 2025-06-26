@@ -1,0 +1,20 @@
+.rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.stars {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.stars span {
+    color: #ffd700;
+    font-size: 1rem;
+}
+
+.rating-text {
+    color: #666;
+    font-size: 0.9rem;
+} 
